@@ -1,0 +1,162 @@
+Sub hw2_1sheet()
+
+    Dim StartTime As Double
+    Dim SecondsElapsed As Double
+        StartTime = Timer
+
+Application.Calculation = xlCalculationManual
+Application.ScreenUpdating = False
+Application.DisplayStatusBar = False
+Application.EnableEvents = False
+
+
+        
+        'mr1 = max number of rows in column 1
+            Dim mr1 As Long
+                mr1 = Cells(Rows.Count, 1).End(xlUp).Row
+            
+        'ctr1 counts the number of distinct tickers encountered during first for loop
+            Dim ctr1 As Long
+                ctr1 = 2
+                
+         ' init ind is just used for the first ticker encountered, just to put initial stuff in row 2 rather than row 3
+            Dim init_ind As Long
+                init_ind = 0
+        
+        
+        'ctr2 is indicator - indicates if ticker already accounted for or not and reset after 2nd if
+            Dim ctr2 As Long
+                ctr2 = 0
+        
+        'Column labelling
+        Cells(1, 9).Value = "Ticker"
+        Cells(1, 10).Value = "Yearly Change"
+        Cells(1, 11).Value = "Percent Change"
+        Cells(1, 12).Value = "Total Stock Volume"
+        
+        'working column labelling for code clarification - will be deleted in code
+        'column 13 = Earliest date for ticker in that row (from column 2)
+        'column 14 = opening value for date (from column 3)
+        'column 15 = latest date for ticker in that row (from column 2)
+        'column 16= closing value for that date (from column 6)
+        
+        'i looping through all the rows
+            For i = 2 To mr1
+        'j looping through list of distinct tickers
+                For j = 2 To ctr1
+        'true if ticker has already been encountered
+                    If Cells(i, 1).Value = Cells(j, 9).Value Then
+                        Cells(j, 12).Value = Cells(j, 12).Value + Cells(i, 7).Value
+        'if encountering an earlier date for known ticker
+                        If Cells(i, 2).Value < Cells(j, 13).Value Then
+                            Cells(j, 13).Value = Cells(i, 2).Value
+                            Cells(j, 14).Value = Cells(i, 3).Value
+         'if encountering an older date for a known ticker
+                        ElseIf Cells(i, 2).Value > Cells(j, 15).Value Then
+                            Cells(j, 15).Value = Cells(i, 2).Value
+                            Cells(j, 16).Value = Cells(i, 6).Value
+                        End If
+                    
+                        ctr2 = ctr2 + 1
+                          
+                    End If
+                Next j
+        
+        'only for first ticker encountered
+                    If ctr2 = 0 And init_ind = 0 Then
+                        Cells(ctr1, 9).Value = Cells(i, 1).Value
+                        Cells(ctr1, 12).Value = Cells(i, 7).Value
+         'new lines
+                        Cells(ctr1, 13).Value = Cells(i, 2).Value
+                        Cells(ctr1, 14).Value = Cells(i, 3).Value
+                        
+                        Cells(ctr1, 15).Value = Cells(i, 2).Value
+                        Cells(ctr1, 16).Value = Cells(i, 6).Value
+                        init_ind = 1
+        
+        'if ticker hasn't been encountered ie new ticker and isnt the first ticker encountered
+                    ElseIf ctr2 = 0 Then
+                        ctr1 = ctr1 + 1
+                        Cells(ctr1, 9).Value = Cells(i, 1).Value
+                        Cells(ctr1, 12).Value = Cells(i, 7).Value
+        'new lines
+                        Cells(ctr1, 13).Value = Cells(i, 2).Value
+                        Cells(ctr1, 14).Value = Cells(i, 3).Value
+                        
+                        Cells(ctr1, 15).Value = Cells(i, 2).Value
+                        Cells(ctr1, 16).Value = Cells(i, 6).Value
+                        
+        ' resets indicator (ctr2) to 0 if ticker has already been encountered
+                    Else
+                        ctr2 = 0
+                    End If
+            Next i
+            
+            For k = 2 To ctr1
+                Cells(k, 10).Value = Cells(k, 16).Value - Cells(k, 14).Value
+                If Cells(k, 14).Value = 0 Then
+                    Cells(k, 11).Value = 0
+                Else
+                 Cells(k, 11).Value = Cells(k, 10).Value / Cells(k, 14).Value
+                End If
+                If Cells(k, 10).Value > 0 Then
+                    Cells(k, 10).Interior.ColorIndex = 4
+                ElseIf Cells(k, 10) < 0 Then
+                    Cells(k, 10).Interior.ColorIndex = 3
+                End If
+            Next k
+            
+            Range(Cells(2, 11), Cells(ctr1, 11)).NumberFormat = "0.00%"
+            
+            
+            
+        'Cleaning up the working columns
+            Range("M:M,N:N,O:O,P:P").Delete
+            
+            Cells(2, 15).Value = "Greatest % Increase"
+            Cells(3, 15).Value = "Greatest % Decrease"
+            Cells(4, 15).Value = "Greatest Total Volume"
+            Cells(1, 16).Value = "Ticker"
+            Cells(1, 17).Value = "Value"
+            
+            'Populating this info
+            For i = 2 To ctr1
+                If Cells(i, 11).Value > Cells(2, 17).Value Then
+                    Cells(2, 17).Value = Cells(i, 11).Value
+                    Cells(2, 16).Value = Cells(i, 9).Value
+                ElseIf Cells(i, 11).Value < Cells(3, 17).Value Then
+                    Cells(3, 17).Value = Cells(i, 11).Value
+                    Cells(3, 16).Value = Cells(i, 9).Value
+                End If
+                
+                If Cells(i, 12).Value > Cells(4, 17).Value Then
+                    Cells(4, 17).Value = Cells(i, 12).Value
+                    Cells(4, 16).Value = Cells(i, 9).Value
+                End If
+                
+            Next i
+            
+            Range(Cells(2, 17), Cells(3, 17)).NumberFormat = "0.00%"
+            
+            Columns("I:L").EntireColumn.AutoFit
+            Columns("O:Q").EntireColumn.AutoFit
+            
+            
+
+    
+
+
+Application.EnableEvents = True
+Application.DisplayStatusBar = True
+Application.ScreenUpdating = True
+Application.Calculation = xlCalculationAutomatic
+    
+    
+    'Determine how many seconds code took to run
+    SecondsElapsed = Round(Timer - StartTime, 2)
+
+    'Notify user in seconds
+    MsgBox "This code ran successfully in " & SecondsElapsed & " seconds", vbInformation
+
+End Sub
+
